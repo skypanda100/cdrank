@@ -18,7 +18,7 @@ const char *EAST_AIRPORT[] = {
 };
 const char *LOGIN_URL_PTR = "http://fisc.variflight.com/v1/user/login";
 const char *LOGIN_POST_PTR = "LoginForm[username]=cdhk&LoginForm[password]=cdhk2017";
-const char *RANK_URL_REGEX_PTR = "http://fisc.variflight.com/v1/east/index?token=%s";
+const char *RANK_URL_REGEX_PTR = "http://fisc.variflight.com%s%s";
 const char *RANK_POST_REGEX_PTR = "airport=%s&flightNumber=EU&minNumber=4&startDay=%s&endDay=%s&cancel=1";
 
 typedef struct st_chunk
@@ -38,18 +38,23 @@ void make_time_by_offset_hour(const char *src_time, char *dst_time, int offset_h
 int main()
 {
     chunk chk;
-    char end_date[15] = {0};
+    char date[15] = {0};
     char start_aviation_date[15] = {0};
     char start_east_date[15] = {0};
+    char end_date[15] = {0};
+    int east_airport_count = sizeof(EAST_AIRPORT) / sizeof(char *);
+    int aviation_airport_count = sizeof(AVIATION_AIRPORT) / sizeof(char *);
 
     // date
-    now_date(end_date);
-    strncpy(start_aviation_date, end_date, 6);
+    now_date(date);
+    strncpy(end_date, date, 6);
+    strcpy(end_date + 6, "01000000");
+    strncpy(start_aviation_date, date, 6);
     strcpy(start_aviation_date + 6, "01000000");
-    make_time_by_offset_hour(end_date, start_east_date, -60 * 24);
+    make_time_by_offset_hour(date, start_east_date, -60 * 24);
     strcpy(start_east_date + 6, "01000000");
-    strcpy(end_date + 8, "000000");
-    printf("%s %s %s\n", end_date, start_aviation_date, start_east_date);
+    strcpy(date + 8, "000000");
+    printf("%s %s %s %s\n", date, end_date, start_aviation_date, start_east_date);
 
     // login
     chk.memory = malloc(1);
@@ -65,17 +70,90 @@ int main()
     // data
     if(token_ptr != NULL)
     {
-        chk.memory = malloc(1);
-        chk.size = 0;
         char data_url[1024] = {0};
-        sprintf(data_url, RANK_URL_REGEX_PTR, token_ptr);
+        sprintf(data_url, RANK_URL_REGEX_PTR, "/v1/east/index?token=", token_ptr);
+        char rank_start_date[11] = {0};
+        char rank_end_date[11] = {0};
         char data_post[1024] = {0};
-        sprintf(data_post, RANK_POST_REGEX_PTR, "ZSPD", "2018-07-01", "2018-08-20");
-        if(spider_execute(&chk, data_url, data_post) == 0)
+
+        // east data
+        strncpy(rank_start_date, start_east_date, 4);
+        strcat(rank_start_date, "-");
+        strncpy(rank_start_date + strlen(rank_start_date), start_east_date + 4, 2);
+        strcat(rank_start_date, "-");
+        strncpy(rank_start_date + strlen(rank_start_date), start_east_date + 6, 2);
+
+        while(strcmp(end_date, date) <= 0)
         {
-            pick_rank(chk.memory);
+            for(int i = 0;i < east_airport_count;i++)
+            {
+                chk.memory = malloc(1);
+                chk.size = 0;
+
+                memset(data_post, 0, sizeof(data_post));
+                memset(rank_end_date, 0, sizeof(rank_end_date));
+
+                strncpy(rank_end_date, end_date, 4);
+                strcat(rank_end_date, "-");
+                strncpy(rank_end_date + strlen(rank_end_date), end_date + 4, 2);
+                strcat(rank_end_date, "-");
+                strncpy(rank_end_date + strlen(rank_end_date), end_date + 6, 2);
+
+                sprintf(data_post, RANK_POST_REGEX_PTR, EAST_AIRPORT[i], rank_start_date, rank_end_date);
+                printf("%s\n", data_post);
+
+                if(spider_execute(&chk, data_url, data_post) == 0)
+                {
+                    pick_rank(chk.memory);
+                }
+                free(chk.memory);
+            }
+
+            make_time_by_offset_hour(end_date, end_date, 24);
         }
-        free(chk.memory);
+        // avaition data
+        memset(data_url, 0, sizeof(data_url));
+        sprintf(data_url, RANK_URL_REGEX_PTR, "/v1/aviation/index?token=", token_ptr);
+        strncpy(end_date, date, 6);
+        strcpy(end_date + 6, "01000000");
+
+        memset(rank_start_date, 0, sizeof(rank_start_date));
+        strncpy(rank_start_date, start_aviation_date, 4);
+        strcat(rank_start_date, "-");
+        strncpy(rank_start_date + strlen(rank_start_date), start_aviation_date + 4, 2);
+        strcat(rank_start_date, "-");
+        strncpy(rank_start_date + strlen(rank_start_date), start_aviation_date + 6, 2);
+
+        while(strcmp(end_date, date) <= 0)
+        {
+            for(int i = 0;i < aviation_airport_count;i++)
+            {
+                chk.memory = malloc(1);
+                chk.size = 0;
+
+                memset(data_post, 0, sizeof(data_post));
+                memset(rank_end_date, 0, sizeof(rank_end_date));
+
+                strncpy(rank_end_date, end_date, 4);
+                strcat(rank_end_date, "-");
+                strncpy(rank_end_date + strlen(rank_end_date), end_date + 4, 2);
+                strcat(rank_end_date, "-");
+                strncpy(rank_end_date + strlen(rank_end_date), end_date + 6, 2);
+
+                sprintf(data_post, RANK_POST_REGEX_PTR, AVIATION_AIRPORT[i], rank_start_date, rank_end_date);
+                printf("%s\n", data_post);
+
+                if(spider_execute(&chk, data_url, data_post) == 0)
+                {
+                    pick_rank(chk.memory);
+                }
+                free(chk.memory);
+            }
+
+            make_time_by_offset_hour(end_date, end_date, 24);
+        }
+
+
         free(token_ptr);
     }
 
@@ -221,6 +299,8 @@ void pick_token(const char *json_ptr, char **token_ptr_ptr)
 
 void pick_rank(const char *json_ptr)
 {
+    printf("json_str: %s\n", json_ptr);
+
     struct json_object *result_obj_ptr = NULL;
     result_obj_ptr = json_tokener_parse(json_ptr);
     if(result_obj_ptr != NULL)
@@ -236,17 +316,32 @@ void pick_rank(const char *json_ptr)
                 json_object_object_get_ex(result_obj_ptr, "data", &data_obj_ptr);
                 if(data_obj_ptr != NULL)
                 {
-                    struct json_object_iterator it;
-                    struct json_object_iterator it_end;
-                    it = json_object_iter_begin(data_obj_ptr);
-                    it_end = json_object_iter_end(data_obj_ptr);
-
-                    while (!json_object_iter_equal(&it, &it_end)) {
-                        struct json_object *rank_obj_ptr = json_object_iter_peek_value(&it);
-                        const char *rank_ptr = json_object_get_string(rank_obj_ptr);
-                        printf("%s\n", rank_ptr);
-                        json_object_iter_next(&it);
+                    if(json_object_get_type(data_obj_ptr) == json_type_array)
+                    {
+                        struct array_list *al = json_object_get_array(data_obj_ptr);
+                        const int al_len = array_list_length(al);
+                        for(int i = 0;i < al_len;i++)
+                        {
+                            struct json_object *rank_obj_ptr = array_list_get_idx(al, i);
+                            const char *rank_ptr = json_object_get_string(rank_obj_ptr);
+                            printf("%s\n", rank_ptr);
+                        }
                     }
+                    else
+                    {
+                        struct json_object_iterator it;
+                        struct json_object_iterator it_end;
+                        it = json_object_iter_begin(data_obj_ptr);
+                        it_end = json_object_iter_end(data_obj_ptr);
+
+                        while (!json_object_iter_equal(&it, &it_end)) {
+                            struct json_object *rank_obj_ptr = json_object_iter_peek_value(&it);
+                            const char *rank_ptr = json_object_get_string(rank_obj_ptr);
+                            json_object_iter_next(&it);
+                            printf("%s\n", rank_ptr);
+                        }
+                    }
+
                 }
             }
         }
