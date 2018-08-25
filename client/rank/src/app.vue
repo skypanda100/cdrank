@@ -62,7 +62,7 @@
                 <br>
                 <Table
                         :columns='rankColumns'
-                        :data='rankDatas'
+                        :data='rankRows'
                         size='small'
                         height="600"
                         :loading="loading"
@@ -83,7 +83,7 @@
     export default {
         data () {
             return {
-                hSplit: 0.35,
+                hSplit: 0.3,
                 eastData: [],
                 aviationData: [],
                 orgs: ['华东', '总局'],
@@ -97,36 +97,30 @@
                 loading: false,
                 rankColumns: [
                     {
-                        'title': '日期',
-                        'key': 'date',
-                        'width': 150,
-                        'sortable': true
+                        type: 'index',
+                        width: 60,
+                        align: 'center'
                     },
                     {
                         'title': '航班号',
                         'key': 'flight',
-                        'width': 120,
+                        'width': 140,
                         'sortable': true
                     },
                     {
                         'title': '起飞机场',
                         'key': 'orgAirport',
-                        'width': 120,
+                        'width': 140,
                         'sortable': true
                     },
                     {
                         'title': '降落机场',
                         'key': 'dstAirport',
-                        'width': 120,
-                        'sortable': true
-                    },
-                    {
-                        'title': '排名',
-                        'key': 'rank',
-                        'width': 100,
+                        'width': 140,
                         'sortable': true
                     }
                 ],
+                rankRows: [],
                 rankDatas: [],
                 chart: null,
                 xAxisData: [],
@@ -373,6 +367,7 @@
             },
             handleSearch () {
                 this.loading = true;
+                let tmpRankRows = [];
                 let tmpRankDatas = [];
                 let jsonData = null;
                 if (this.org === '华东') {
@@ -414,15 +409,31 @@
                                     dstAirport: dstAirport,
                                     rank: rank.ranking
                                 });
+                                canPush = true;
+                                for (let rankRow of tmpRankRows) {
+                                    if (rankRow.flight === flight &&
+                                        rankRow.orgAirport === orgAirport &&
+                                        rankRow.dstAirport === dstAirport) {
+                                        canPush = false;
+                                        break;
+                                    }
+                                }
+                                if (canPush) {
+                                    tmpRankRows.push({
+                                        flight: flight,
+                                        orgAirport: orgAirport,
+                                        dstAirport: dstAirport
+                                    });
+                                }
                             }
                         });
                     }
+                    this.rankRows = tmpRankRows;
                     this.rankDatas = tmpRankDatas;
                     this.loading = false;
-                }, 200);
-
-                this.seriesData2 = [];
-                this.makeChart('');
+                    this.seriesData2 = [];
+                    this.makeChart('');
+                }, 250);
             },
             handleClick (data, index) {
                 let title = data.flight + '[' + data.orgAirport + ' - ' + data.dstAirport + ']';
@@ -494,7 +505,7 @@
     }
 
     .chart {
-        width: calc(65%);
+        width: calc(70%);
         height: 700px;
     }
 </style>
