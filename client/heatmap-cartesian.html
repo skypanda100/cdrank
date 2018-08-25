@@ -39,14 +39,28 @@ option = {
         type: 'category',
         data: hours,
         splitArea: {
-            show: true
+            show: false
+        },
+		splitLine:{  
+            show:true,
+			lineStyle:{
+				color:'#000',
+				width: 1
+			}
         }
     },
     yAxis: [{
         type: 'category',
         data: days,
         splitArea: {
-            show: true
+            show: false
+        },
+		splitLine:{  
+            show:true,
+			lineStyle:{
+				color:'#000',
+				width: 1
+			}
         }
     },{
         type: 'value'
@@ -55,11 +69,11 @@ option = {
         min: 0,
         max: 10,
         calculable: true,
+		show: false,
         orient: 'horizontal',
         left: 'center',
-        bottom: '15%',
 		inRange: {
-            color: ['rgba(60,179,113,1.0)', 'rgba(72,209,204,1.0)', 'rgba(255,215,0,1.0)', 'rgba(255,228,196,1.0)', 'rgba(255,99,71,1.0)']
+            color: ['rgba(178,34,3,1.0)', 'rgba(255,140,0,1.0)', 'rgba(255,215,0,1.0)', 'rgba(72,209,204,1.0)', 'rgba(60,179,113,1.0)']
         }
     },
     series: [{
