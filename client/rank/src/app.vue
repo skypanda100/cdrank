@@ -267,7 +267,13 @@
                         text: title
                     },
                     tooltip: {
-                        position: 'top'
+                        trigger: 'none',
+                        axisPointer: {
+                            type: 'cross',
+                            crossStyle: {
+                                color: '#555'
+                            }
+                        }
                     },
                     animation: true,
                     grid: {
@@ -309,11 +315,7 @@
                         },
                         itemStyle: {
                             borderWidth: 1,
-                            borderColor: '#eee',
-                            emphasis: {
-                                shadowBlur: 10,
-                                shadowColor: 'rgba(0, 0, 0, 0.5)'
-                            }
+                            borderColor: '#eee'
                         },
                         silent: true
                     }, {
@@ -325,7 +327,8 @@
                         lineStyle: {
                             color: '#555',
                             width: 3
-                        }
+                        },
+                        smooth: true
                     }]
                 };
                 return option;
