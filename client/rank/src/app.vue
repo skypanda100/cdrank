@@ -64,7 +64,7 @@
                         :columns='rankColumns'
                         :data='rankRows'
                         size='small'
-                        height="600"
+                        height="750"
                         :loading="loading"
                         @on-row-dblclick="handleClick"
                         ref='table'>
@@ -98,25 +98,31 @@
                 rankColumns: [
                     {
                         type: 'index',
-                        width: 60,
+                        width: 50,
                         align: 'center'
                     },
                     {
                         'title': '航班号',
                         'key': 'flight',
-                        'width': 140,
+                        'width': 110,
                         'sortable': true
                     },
                     {
                         'title': '起飞机场',
                         'key': 'orgAirport',
-                        'width': 140,
+                        'width': 110,
                         'sortable': true
                     },
                     {
                         'title': '降落机场',
                         'key': 'dstAirport',
-                        'width': 140,
+                        'width': 110,
+                        'sortable': true
+                    },
+                    {
+                        'title': '最新排名',
+                        'key': 'rank',
+                        'width': 110,
                         'sortable': true
                     }
                 ],
@@ -414,15 +420,19 @@
                                     if (rankRow.flight === flight &&
                                         rankRow.orgAirport === orgAirport &&
                                         rankRow.dstAirport === dstAirport) {
+                                        if (dateKey > rankRow.date) {
+                                            rankRow.rank = ('00000' + rank.ranking).slice(-3);
+                                        }
                                         canPush = false;
-                                        break;
                                     }
                                 }
                                 if (canPush) {
                                     tmpRankRows.push({
+                                        date: dateKey,
                                         flight: flight,
                                         orgAirport: orgAirport,
-                                        dstAirport: dstAirport
+                                        dstAirport: dstAirport,
+                                        rank: ('00000' + rank.ranking).slice(-3)
                                     });
                                 }
                             }
@@ -501,11 +511,11 @@
         margin: 20px;
         padding: 5px;
         /*width: 800px;*/
-        height: 700px;
+        height: 800px;
     }
 
     .chart {
-        width: calc(70%);
-        height: 700px;
+        width: 1200px;
+        height: 800px;
     }
 </style>
