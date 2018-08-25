@@ -260,8 +260,12 @@
                 }
                 this.seriesData1 = tmp;
             },
-            createOption () {
+            createOption (title) {
                 let option = {
+                    title: {
+                        left: 'center',
+                        text: title
+                    },
                     tooltip: {
                         position: 'top'
                     },
@@ -326,9 +330,9 @@
                 };
                 return option;
             },
-            makeChart () {
+            makeChart (title) {
                 this.initChart();
-                this.chart.setOption(this.createOption());
+                this.chart.setOption(this.createOption(title));
             },
             handleSearch () {
                 this.loading = true;
@@ -393,10 +397,11 @@
                     this.loading = false;
 
                     this.seriesData2 = [];
-                    this.makeChart();
+                    this.makeChart('');
                 });
             },
             handleClick (data, index) {
+                let title = data.flight + '[' + data.orgAirport + ' - ' + data.dstAirport + ']';
                 this.initChart();
 
                 let tmp = [];
@@ -408,7 +413,7 @@
                     }
                 });
                 this.seriesData2 = tmp;
-                this.makeChart();
+                this.makeChart(title);
             }
         }
     };
