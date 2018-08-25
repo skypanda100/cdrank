@@ -3,7 +3,18 @@
         <Split v-model='hSplit'>
             <div slot='left' class=''>
                 <Row>
-                    <i-col span='5'>
+                    <i-col span='3'>
+                        <Select
+                                v-model='org'
+                                placeholder='机构'
+                                filterable>
+                            <Option v-for='(item, index) in orgs' :value='item' :key='index'>{{ item }}</Option>
+                        </Select>
+                    </i-col>
+                    <i-col span='1'>
+                        &nbsp;
+                    </i-col>
+                    <i-col span='4'>
                         <Select
                                 v-model='flight'
                                 clearable
@@ -15,7 +26,7 @@
                     <i-col span='1'>
                         &nbsp;
                     </i-col>
-                    <i-col span='5'>
+                    <i-col span='4'>
                         <Select
                                 v-model='orgAirport'
                                 clearable
@@ -27,7 +38,7 @@
                     <i-col span='1'>
                         &nbsp;
                     </i-col>
-                    <i-col span='5'>
+                    <i-col span='4'>
                         <Select
                                 v-model='dstAirport'
                                 clearable
@@ -39,7 +50,7 @@
                     <i-col span='1'>
                         &nbsp;
                     </i-col>
-                    <i-col span='5'>
+                    <i-col span='4'>
                         <Button
                                 type='primary'
                                 long
@@ -73,6 +84,10 @@
         data () {
             return {
                 hSplit: 0.35,
+                eastData: [],
+                aviationData: [],
+                orgs: ['华东', '总局'],
+                org: '华东',
                 flights: [],
                 flight: '',
                 orgAirports: [],
@@ -122,9 +137,28 @@
         },
         mounted () {
             this.initChart();
-            this.handleSearch();
+            fetchEast().then(response => {
+                this.eastData = response.data;
+                this.resetInputFields();
+                this.handleSearch();
+            });
         },
         beforeDestroy () {
+        },
+        watch: {
+            'org': function (data) {
+                if (data === '华东') {
+                    fetchEast().then(response => {
+                        this.eastData = response.data;
+                        this.resetInputFields();
+                    });
+                } else {
+                    fetchAviation().then(response => {
+                        this.aviationData = response.data;
+                        this.resetInputFields();
+                    });
+                }
+            }
         },
         methods: {
             initChart () {
@@ -339,34 +373,24 @@
             },
             handleSearch () {
                 this.loading = true;
-                let tmpFlights = [];
-                let tmpOrgAirports = [];
-                let tmpDstAirports = [];
                 let tmpRankDatas = [];
+                let jsonData = null;
+                if (this.org === '华东') {
+                    jsonData = this.eastData;
+                } else {
+                    jsonData = this.aviationData;
+                }
 
-                fetchEast().then(response => {
-                    let jsonData = response.data;
+                setTimeout(() => {
                     for (let dateKey in jsonData) {
                         let dateValue = jsonData[dateKey];
                         dateValue.map(rank => {
                             // 航班号
                             let flight = rank.fnum;
-                            if (!util.oneOf(flight, tmpFlights)) {
-                                tmpFlights.push(flight);
-                            }
-
                             // 起飞机场
                             let orgAirport = rank.forg;
-                            if (!util.oneOf(orgAirport, tmpOrgAirports)) {
-                                tmpOrgAirports.push(orgAirport);
-                            }
-
                             // 降落机场
                             let dstAirport = rank.fdst;
-                            if (!util.oneOf(dstAirport, tmpDstAirports)) {
-                                tmpDstAirports.push(dstAirport);
-                            }
-
                             // 排名列表
                             let canPush = false;
                             if (util.isNull(this.flight) ||
@@ -393,15 +417,12 @@
                             }
                         });
                     }
-                    this.flights = tmpFlights;
-                    this.orgAirports = tmpOrgAirports;
-                    this.dstAirports = tmpDstAirports;
                     this.rankDatas = tmpRankDatas;
                     this.loading = false;
+                }, 200);
 
-                    this.seriesData2 = [];
-                    this.makeChart('');
-                });
+                this.seriesData2 = [];
+                this.makeChart('');
             },
             handleClick (data, index) {
                 let title = data.flight + '[' + data.orgAirport + ' - ' + data.dstAirport + ']';
@@ -417,6 +438,47 @@
                 });
                 this.seriesData2 = tmp;
                 this.makeChart(title);
+            },
+            resetInputFields () {
+                let jsonData = null;
+                let tmpFlights = [];
+                let tmpOrgAirports = [];
+                let tmpDstAirports = [];
+
+                if (this.org === '华东') {
+                    jsonData = this.eastData;
+                } else {
+                    jsonData = this.aviationData;
+                }
+                for (let dateKey in jsonData) {
+                    let dateValue = jsonData[dateKey];
+                    dateValue.map(rank => {
+                        // 航班号
+                        let flight = rank.fnum;
+                        if (!util.oneOf(flight, tmpFlights)) {
+                            tmpFlights.push(flight);
+                        }
+
+                        // 起飞机场
+                        let orgAirport = rank.forg;
+                        if (!util.oneOf(orgAirport, tmpOrgAirports)) {
+                            tmpOrgAirports.push(orgAirport);
+                        }
+
+                        // 降落机场
+                        let dstAirport = rank.fdst;
+                        if (!util.oneOf(dstAirport, tmpDstAirports)) {
+                            tmpDstAirports.push(dstAirport);
+                        }
+                    });
+                }
+                this.flights = tmpFlights;
+                this.orgAirports = tmpOrgAirports;
+                this.dstAirports = tmpDstAirports;
+
+                this.flight = '';
+                this.orgAirport = '';
+                this.dstAirport = '';
             }
         }
     };
