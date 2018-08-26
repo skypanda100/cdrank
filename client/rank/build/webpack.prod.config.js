@@ -44,8 +44,8 @@ module.exports = merge(webpackBaseConfig, {
             }
         }),
         new HtmlWebpackPlugin({
-            title: 'rank v' + package.version,
-            favicon: './rank.ico',
+            title: 'rank',
+            favicon: '',
             filename: '../index.html',
             template: './src/template/index.ejs',
             inject: false
