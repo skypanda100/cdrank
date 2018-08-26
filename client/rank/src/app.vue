@@ -1,7 +1,20 @@
 <template>
     <div id='main' class='main'>
-        <Split v-model='hSplit'>
-            <div slot='left' class=''>
+        <Row>
+            <i-col span="8">
+                <img width="210px" height="70px"  align="left" src="./images/logo1.jpg">
+            </i-col>
+            <i-col span="8">
+                <h2 style="line-height:70px;text-align: center">
+                    成都航空运行控制中心航班预警排名系统
+                </h2>
+            </i-col>
+            <i-col span="8">
+                <img width="210px" height="70px" align="right" src="./images/logo2.jpg">
+            </i-col>
+        </Row>
+        <Split v-model='hSplit' class="split">
+            <div slot='left' class='list'>
                 <Row>
                     <i-col span='3'>
                         <Select
@@ -505,13 +518,19 @@
     };
 </script>
 
-<style>
+<style scoped>
     .main {
-        border: 1px solid #dcdee2;
-        margin: 20px;
-        padding: 5px;
+        /*border: 1px solid #dcdee2;*/
         /*width: 800px;*/
         height: 800px;
+    }
+
+    .split {
+        border: 1px solid #dcdee2;
+    }
+
+    .list {
+        padding: 5px;
     }
 
     .chart {

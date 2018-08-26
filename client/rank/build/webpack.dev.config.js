@@ -29,7 +29,7 @@ module.exports = merge(webpackBaseConfig, {
             minChunks: Infinity
         }),
         new HtmlWebpackPlugin({
-            title: 'rank v' + package.version,
+            title: 'rank',
             filename: '../index.html',
             template: './src/template/index.ejs',
             inject: false
