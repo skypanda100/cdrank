@@ -10,6 +10,7 @@ export function fetchEast () {
 export function fetchAviation () {
     return service({
         method: 'get',
-        url: '/data/aviation.json'
+        // url: '/data/aviation.json'
+        url: '/data/aviation_rank_list.json'
     });
 }
