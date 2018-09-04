@@ -14,3 +14,10 @@ export function fetchAviation () {
         url: '/data/aviation_rank_list.json'
     });
 }
+
+export function fetchReason () {
+    return service({
+        method: 'get',
+        url: '/data/UnnormalReason.json'
+    });
+}

@@ -85,7 +85,7 @@
                     }
                     tmp.push({
                         date: date,
-                        reason: '',
+                        reason: d.reason,
                         delay: delay,
                         score: score,
                         cellClassName: cellClassName

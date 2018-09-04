@@ -1,18 +1,18 @@
 <template>
     <div id='main' class='main'>
-        <!--<Row>-->
-            <!--<i-col span="8">-->
-                <!--<img width="210px" height="70px"  align="left" src="./images/logo1.jpg">-->
-            <!--</i-col>-->
-            <!--<i-col span="8">-->
-                <!--<h1 style="line-height:70px;text-align: center">-->
-                    <!--成都航空运行控制中心航班预警排名系统-->
-                <!--</h1>-->
-            <!--</i-col>-->
-            <!--<i-col span="8">-->
-                <!--<img width="210px" height="70px" align="right" src="./images/logo2.jpg">-->
-            <!--</i-col>-->
-        <!--</Row>-->
+        <Row>
+            <i-col span="8">
+                <img width="210px" height="70px"  align="left" src="./images/logo1.jpg">
+            </i-col>
+            <i-col span="8">
+                <h1 style="line-height:70px;text-align: center">
+                    成都航空运行控制中心航班预警排名系统
+                </h1>
+            </i-col>
+            <i-col span="8">
+                <img width="210px" height="70px" align="right" src="./images/logo2.jpg">
+            </i-col>
+        </Row>
         <Split v-model='hSplit' class="split">
             <div slot='left' class='list'>
                 <Row>
@@ -84,16 +84,16 @@
                         ref='table'>
                 </Table>
             </div>
-            <div slot='right' id='chart' class='chart'>
+            <div v-if="org === '总局'" slot='right' id='chartAviation' class='chart' key="div1">
                 <Card style="height: 400px" :padding="0">
-                    <div style="width:calc(70%);height: 400px">
-                        <scatter :scatterData="scatterData">
+                    <div style="width:calc(100%);height: 400px">
+                        <scatter :scatterData="scatterData" key="1">
                         </scatter>
                     </div>
                 </Card>
                 <br>
                 <Card style="height: 400px" :padding="0">
-                    <div style="width:calc(70%);height: 400px">
+                    <div style="width:calc(100%);height: 400px">
                         <pie :pieData="pieData">
                         </pie>
                     </div>
@@ -106,7 +106,7 @@
                             </spread>
                         </i-col>
                         <i-col span="8">
-                            <div style="width:calc(70%);height: 400px">
+                            <div style="width:calc(100%);height: 400px">
                                 <radar :radarData="radarData">
                                 </radar>
                             </div>
@@ -114,12 +114,20 @@
                     </Row>
                 </Card>
             </div>
+            <div v-if="org === '华东'" slot='right' id='chartEast' class='chart' key="div2">
+                <Card style="height: 800px" :padding="0">
+                    <div style="width: calc(100%);height: 800px">
+                        <scatter :scatterData="scatterData" key="2">
+                        </scatter>
+                    </div>
+                </Card>
+            </div>
         </Split>
     </div>
 </template>
 
 <script>
-    import {fetchEast, fetchAviation} from './api/rank';
+    import {fetchEast, fetchAviation, fetchReason} from './api/rank';
     import scatter from './components/scatter';
     import pie from './components/pie';
     import spread from './components/spread';
@@ -138,8 +146,9 @@
                 hSplit: 0.3,
                 eastData: [],
                 aviationData: [],
+                reasonData: [],
                 orgs: ['华东', '总局'],
-                org: '总局',
+                org: '华东',
                 flights: [],
                 flight: '',
                 orgAirports: [],
@@ -188,15 +197,13 @@
             };
         },
         mounted () {
-            // fetchEast().then(response => {
-            //     this.eastData = response.data;
-            //     this.resetInputFields();
-            //     this.handleSearch();
-            // });
-            fetchAviation().then(response => {
-                this.aviationData = response.data;
+            fetchEast().then(response => {
+                this.eastData = response.data;
                 this.resetInputFields();
                 this.handleSearch();
+            });
+            fetchReason().then(response => {
+                this.reasonData = response.data;
             });
         },
         beforeDestroy () {
@@ -269,6 +276,40 @@
                         this.setAviationRankData(this.aviationData);
                     }, 250);
                 }
+            },
+            getReason (rank) {
+                let fnum = rank.flight;
+                let forg = rank.orgAirport;
+                let fdst = rank.dstAirport;
+                let date = rank.date;
+                let rs = '';
+                for (let reason of this.reasonData) {
+                    if (reason.fnum === fnum &&
+                        reason.forg === forg &&
+                        reason.fdst === fdst &&
+                        reason.ScheduledDate === date) {
+                        let reasonCode = reason.UnnormalReason.substr(0, 2);
+                        switch (reasonCode) {
+                            case '01':
+                                rs = '天气';
+                                break;
+                            case '02':
+                                rs = '公司';
+                                break;
+                            case '03':
+                                rs = '空管';
+                                break;
+                            case '04':
+                                rs = '军事';
+                                break;
+                            default:
+                                rs = '其他';
+                                break;
+                        }
+                        break;
+                    }
+                }
+                return rs;
             },
             setEastRankData (jsonData) {
                 let tmpRankRows = [];
@@ -461,6 +502,8 @@
                 let tmp = [];
                 this.rankData.map(rank => {
                     if (rank.flight === data.flight) {
+                        let reason = this.getReason(rank);
+                        rank.reason = reason;
                         tmp.push(rank);
                     }
                 });
