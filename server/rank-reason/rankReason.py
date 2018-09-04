@@ -6,9 +6,11 @@ import os
 import re
 import csv
 
-from normalCount import flight_reason
-from normalCount import login as normal_login
-normal_login()
+# from draw import draw_pic,draw_pic2
+# draw_pic(x1,y1,filename) 
+# x1,y1分别为x轴y轴的数值列表，filename为保存的文件名
+
+from UnnormalReasonCount import flight_reason
 # flight_reason(CallSign,DepAP,ArrAP,start_day,end_day)
 
 def get_date(month=None):
@@ -55,7 +57,7 @@ def login():
     login_rep= s.post(url=login_url,headers=login_headers,data=post_data)
     # print(login_rep.content)
     if login_rep.json()["message"]=='Success':
-        print('登录成功\n')
+        print('飞常准登录成功\n')
         token=login_rep.json()["data"]
         return token
     else:
@@ -93,27 +95,32 @@ def get_airport_day_rank(url,start_day,end_day,airport):
                 # print(data,'\n')
                 return data
                 
-# 添加原因模块
+# 添加原因模块，筛选排名
 def rank_add_reason(url,start_day,end_day,airport):
     new_rank_list=[]
     rank_list=get_airport_day_rank(url,start_day,end_day,airport)
-    if 'aviation' in url:
-        if rank_list:
-            for x in rank_list:
-                CallSign=x['fnum']
-                DepAP=x['forg']
-                ArrAP=x['fdst']
-                reason=flight_reason(CallSign,DepAP,ArrAP,start_day,end_day)
-                if reason:
-                    x.update(reason)
+    if rank_list:
+        for x in rank_list:
+            if x['ranking']<=60: #取排名60以内的数据
+                x['startDay']=start_day
+                x['endDay']=end_day
+                x['flight']=f"{x['fnum']} {x['forg']}-{x['fdst']}"
+                
+                if 'aviation' in url:
+                    CallSign=x['fnum']
+                    DepAP=x['forg']
+                    ArrAP=x['fdst']
+                    reason=flight_reason(CallSign,DepAP,ArrAP,start_day,end_day)
+                    if reason:
+                        x.update(reason)
+                        new_rank_list.append(x)
+                else:
                     new_rank_list.append(x)
-                    print(x)
-    else:
-        new_rank_list=rank_list
+                    
     # print(new_rank_list)
     return new_rank_list
     
-    # 遍历机场，筛选排名
+    # 遍历机场
 def get_day_rank_list(url,airport_list,start_day,end_day):
     rank_dict={}
     rank_list=[]
@@ -121,13 +128,7 @@ def get_day_rank_list(url,airport_list,start_day,end_day):
         # rank=get_airport_day_rank(url,start_day,end_day,airport)
         rank=rank_add_reason(url,start_day,end_day,airport)
         if rank:
-            for x in rank:
-                 if x['ranking']<=60: #取排名60以内的数据
-                    x['startDay']=start_day
-                    x['endDay']=end_day
-                    x['flight']=f"{x['fnum']} {x['forg']}-{x['fdst']}"
-                    #print(x)
-                    rank_list.append(x)
+            rank_list.append(rank)
     rank_dict[end_day]=rank_list
     # print(rank_list,'\n')
     # print(rank_dict)
@@ -143,11 +144,13 @@ class New_rank():
     '''
     def __init__(self,tag):
         self.host="http://fisc.variflight.com"
+        self.tag=tag
         if tag=='East':
             self.url=self.host+"/v1/east/index?token="+token
             self.file='east_rank_list.json'
             self.airport_list=east_airport
             self.start_month=str(month-2).zfill(2)# 华东从上上月1号开始统计
+            
             
         if tag=='Aviation':
             self.url=self.host+"/v1/aviation/index?token="+token
@@ -179,7 +182,7 @@ class New_rank():
             x=str(x).zfill(2)
             end_day=f'{year}-{self.stop_month}-{x}'
             if end_day not in old_rank_date:
-                print(f'{end_day}正在下载数据')
+                print(f'正在下载{end_day}_{self.tag}数据')
                 rank_list=get_day_rank_list(self.url,self.airport_list,self.start_day,end_day)
                 total_rank_list.update(rank_list)
                 with open(self.file,'w',encoding='utf-8') as fp:
@@ -250,8 +253,8 @@ if __name__=='__main__':
         set_month=int(set_month)
     year,month,max_day=get_date(set_month)
     target_day=f'{year}-{str(month).zfill(2)}-{str(max_day).zfill(2)}'
-    with open('update','w') as f:
-        f.write(target_day)
+    # with open('update','w') as f:
+        # f.write(target_day)
     print(target_day,'\n')
     if token:
         # host="http://fisc.variflight.com"
@@ -264,23 +267,23 @@ if __name__=='__main__':
         aviation_rank_all=aviation_rank.get_new_rank()
         
         
-        rank_csv(aviation_rank_all,'Aviation')
-        rank_csv(east_rank_all,'East')
+        # rank_csv(aviation_rank_all,'Aviation')
+        # rank_csv(east_rank_all,'East')
         
-        east_Flight_list,east_Rank=rank_filter(east_rank_all,month)
-        for east_Flight in east_Flight_list:
-            print('\n华东',east_Flight)
-            sort_date,sort_rank=rank_Flight(east_Rank,east_Flight)
-            
-            sort_date=sort_rank=None
+        # east_Flight_list,east_Rank=rank_filter(east_rank_all,month)
+        # for east_Flight in east_Flight_list:
+            # print('\n华东',east_Flight)
+            # sort_date,sort_rank=rank_Flight(east_Rank,east_Flight)
+            # draw_pic(sort_date,sort_rank,'East_'+east_Flight+'.png',east_Flight)
+            # sort_date=sort_rank=None
         
-        print("\n\n")
-        aviation_Flight_list,aviation_Rank=rank_filter(aviation_rank_all,month)
-        for aviation_Flight in aviation_Flight_list:
-            print('\n总局',aviation_Flight)
-            sort_date,sort_rank=rank_Flight(aviation_Rank,aviation_Flight)
-        
-            sort_date=sort_rank=None
+        # print("\n\n")
+        # aviation_Flight_list,aviation_Rank=rank_filter(aviation_rank_all,month)
+        # for aviation_Flight in aviation_Flight_list:
+            # print('\n总局',aviation_Flight)
+            # sort_date,sort_rank=rank_Flight(aviation_Rank,aviation_Flight)
+            # draw_pic(sort_date,sort_rank,'Aviation_'+aviation_Flight+'.png',aviation_Flight)
+            # sort_date=sort_rank=None
         
         
         

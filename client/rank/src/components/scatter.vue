@@ -54,7 +54,7 @@
                     });
                 } else {
                     minRank = 1;
-                    maxRank = 60;
+                    maxRank = 30;
                 }
 
                 if (minRank > 1) {
@@ -250,7 +250,7 @@
 <style scoped>
     .scatterChart {
         height: 100%;
-        width: 100%;
+        /*width: 100%;*/
         transition: all 0.5s linear;
     }
 </style>

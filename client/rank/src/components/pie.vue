@@ -75,11 +75,11 @@
                         width: '60%'
                     },
                     series: [
-                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: 'rgb(194, 53, 49)'},
-                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: 'rgb(212, 130, 101)'},
-                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: 'rgb(97, 160, 168)'},
-                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: 'rgb(47, 69, 84)'},
-                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: 'rgb(220, 20, 60)'},
+                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: '#696969'},
+                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: '#B22222'},
+                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: '#008B8B'},
+                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: '#FFA500'},
+                        {type: 'line', smooth: true, seriesLayoutBy: 'row', color: '#7B68EE'},
                         {
                             type: 'pie',
                             id: 'pie',
@@ -101,11 +101,11 @@
                                 }
                             },
                             color: [
-                                'rgb(194, 53, 49)',
-                                'rgb(212, 130, 101)',
-                                'rgb(97, 160, 168)',
-                                'rgb(47, 69, 84)',
-                                'rgb(220, 20, 60)'
+                                '#696969',
+                                '#B22222',
+                                '#008B8B',
+                                '#FFA500',
+                                '#7B68EE'
                             ]
                         }
                     ]

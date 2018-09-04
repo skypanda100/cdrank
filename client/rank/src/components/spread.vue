@@ -3,7 +3,7 @@
         <Table
                 highlight-row
                 :columns="spreadColumns"
-                height="250"
+                height="550"
                 :data="spreadRows">
         </Table>
     </div>
@@ -91,12 +91,25 @@
                         cellClassName: cellClassName
                     });
                 });
-                this.spreadRows = tmp;
+                this.spreadRows = this.sort(tmp);
             }
         },
         mounted () {
         },
         methods: {
+            sort (data) {
+                for (let i = 0; i < data.length; i++) {
+                    for (let j = 0; j < data.length - i - 1; j++) {
+                        let cur = data[j];
+                        let nxt = data[j + 1];
+                        if (cur.date < nxt.date) {
+                            data[j] = nxt;
+                            data[j + 1] = cur;
+                        }
+                    }
+                }
+                return data;
+            },
             getScore (date, reasonRate, rank) {
                 let day = parseInt(date.substr(8), 10);
                 let score1 = 0;

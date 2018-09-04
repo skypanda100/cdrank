@@ -1,18 +1,18 @@
 <template>
     <div id='main' class='main'>
-        <Row>
-            <i-col span="8">
-                <img width="210px" height="70px"  align="left" src="./images/logo1.jpg">
-            </i-col>
-            <i-col span="8">
-                <h1 style="line-height:70px;text-align: center">
-                    成都航空运行控制中心航班预警排名系统
-                </h1>
-            </i-col>
-            <i-col span="8">
-                <img width="210px" height="70px" align="right" src="./images/logo2.jpg">
-            </i-col>
-        </Row>
+        <!--<Row>-->
+            <!--<i-col span="8">-->
+                <!--<img width="210px" height="70px"  align="left" src="./images/logo1.jpg">-->
+            <!--</i-col>-->
+            <!--<i-col span="8">-->
+                <!--<h1 style="line-height:70px;text-align: center">-->
+                    <!--成都航空运行控制中心航班预警排名系统-->
+                <!--</h1>-->
+            <!--</i-col>-->
+            <!--<i-col span="8">-->
+                <!--<img width="210px" height="70px" align="right" src="./images/logo2.jpg">-->
+            <!--</i-col>-->
+        <!--</Row>-->
         <Split v-model='hSplit' class="split">
             <div slot='left' class='list'>
                 <Row>
@@ -85,20 +85,34 @@
                 </Table>
             </div>
             <div slot='right' id='chart' class='chart'>
-                <div style="width: 100%;height: 50%">
-                    <scatter :scatterData="scatterData">
-                    </scatter>
-                </div>
-                <div style="width: 100%;height: 50%">
-                    <pie :pieData="pieData">
-                    </pie>
-                </div>
-                <div style="width: 100%;height: 50%">
-                    <spread :spreadData="spreadData">
-                    </spread>
-                </div>
-                <radar :radarData="radarData">
-                </radar>
+                <Card style="height: 400px" :padding="0">
+                    <div style="width:calc(70%);height: 400px">
+                        <scatter :scatterData="scatterData">
+                        </scatter>
+                    </div>
+                </Card>
+                <br>
+                <Card style="height: 400px" :padding="0">
+                    <div style="width:calc(70%);height: 400px">
+                        <pie :pieData="pieData">
+                        </pie>
+                    </div>
+                </Card>
+                <br>
+                <Card style="height: 600px" :padding="0">
+                    <Row>
+                        <i-col span="16">
+                            <spread :spreadData="spreadData">
+                            </spread>
+                        </i-col>
+                        <i-col span="8">
+                            <div style="width:calc(70%);height: 400px">
+                                <radar :radarData="radarData">
+                                </radar>
+                            </div>
+                        </i-col>
+                    </Row>
+                </Card>
             </div>
         </Split>
     </div>
@@ -125,7 +139,7 @@
                 eastData: [],
                 aviationData: [],
                 orgs: ['华东', '总局'],
-                org: '华东',
+                org: '总局',
                 flights: [],
                 flight: '',
                 orgAirports: [],
@@ -174,8 +188,13 @@
             };
         },
         mounted () {
-            fetchEast().then(response => {
-                this.eastData = response.data;
+            // fetchEast().then(response => {
+            //     this.eastData = response.data;
+            //     this.resetInputFields();
+            //     this.handleSearch();
+            // });
+            fetchAviation().then(response => {
+                this.aviationData = response.data;
                 this.resetInputFields();
                 this.handleSearch();
             });
@@ -496,7 +515,8 @@
     }
 
     .chart {
-        width: 1200px;
-        height: 800px;
+        height: 100%;
+        padding: 10px;
+        overflow-y: auto;
     }
 </style>
