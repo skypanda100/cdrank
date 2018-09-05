@@ -1,18 +1,18 @@
 <template>
     <div id='main' class='main'>
-        <!--<Row>-->
-            <!--<i-col span="8">-->
-                <!--<img width="210px" height="70px"  align="left" src="./images/logo1.jpg">-->
-            <!--</i-col>-->
-            <!--<i-col span="8">-->
-                <!--<h1 style="line-height:70px;text-align: center">-->
-                    <!--成都航空运行控制中心航班预警排名系统-->
-                <!--</h1>-->
-            <!--</i-col>-->
-            <!--<i-col span="8">-->
-                <!--<img width="210px" height="70px" align="right" src="./images/logo2.jpg">-->
-            <!--</i-col>-->
-        <!--</Row>-->
+        <Row>
+            <i-col span="8">
+                <img width="210px" height="70px"  align="left" src="./images/logo1.jpg">
+            </i-col>
+            <i-col span="8">
+                <h1 style="line-height:70px;text-align: center">
+                    成都航空运行控制中心航班预警排名系统
+                </h1>
+            </i-col>
+            <i-col span="8">
+                <img width="210px" height="70px" align="right" src="./images/logo2.jpg">
+            </i-col>
+        </Row>
         <Row>
             <i-col span="7">
                 <div class='list'>
@@ -131,7 +131,7 @@
 </template>
 
 <script>
-    import {fetchEast, fetchAviation, fetchReason} from './api/rank';
+    import {fetchEast, fetchLastEast, fetchAviation, fetchReason} from './api/rank';
     import scatter from './components/scatter';
     import pie from './components/pie';
     import spread from './components/spread';
@@ -149,6 +149,7 @@
             return {
                 hSplit: 0.3,
                 eastData: [],
+                eastLastData: [],
                 aviationData: [],
                 reasonData: [],
                 orgs: ['华东', '总局'],
@@ -160,7 +161,59 @@
                 dstAirports: [],
                 dstAirport: '',
                 loading: false,
-                rankColumns: [
+                rankColumns: [],
+                rankRows: [],
+                rankData: [],
+                eastRankColumns: [
+                    {
+                        type: 'index',
+                        width: 50,
+                        align: 'center'
+                    },
+                    {
+                        'title': '航班号',
+                        'key': 'flight',
+                        'width': 110,
+                        'sortable': true
+                    },
+                    {
+                        'title': '起飞机场',
+                        'key': 'orgAirport',
+                        'width': 110,
+                        'sortable': true
+                    },
+                    {
+                        'title': '降落机场',
+                        'key': 'dstAirport',
+                        'width': 110,
+                        'sortable': true
+                    },
+                    {
+                        'title': '正常率(%)',
+                        'key': 'rate',
+                        'width': 110,
+                        'sortable': true
+                    },
+                    {
+                        'title': '最新排名',
+                        'key': 'rank',
+                        'width': 110,
+                        'sortable': true
+                    },
+                    {
+                        'title': '上个月排名',
+                        'key': 'lastRank',
+                        'width': 150,
+                        'sortable': true
+                    },
+                    {
+                        'title': '上上个月排名',
+                        'key': 'lastLastRank',
+                        'width': 150,
+                        'sortable': true
+                    }
+                ],
+                aviationRankColumns: [
                     {
                         type: 'index',
                         width: 50,
@@ -191,8 +244,6 @@
                         'sortable': true
                     }
                 ],
-                rankRows: [],
-                rankData: [],
                 items: [],
                 scatterData: [],
                 pieData: [],
@@ -208,6 +259,9 @@
             });
             fetchReason().then(response => {
                 this.reasonData = response.data;
+            });
+            fetchLastEast().then(response => {
+                this.eastLastData = response.data;
             });
         },
         beforeDestroy () {
@@ -241,24 +295,26 @@
                 }
                 for (let dateKey in jsonData) {
                     let dateValue = jsonData[dateKey];
-                    dateValue.map(rank => {
-                        // 航班号
-                        let flight = rank.fnum;
-                        if (!util.oneOf(flight, tmpFlights)) {
-                            tmpFlights.push(flight);
-                        }
+                    dateValue.map(ranks => {
+                        ranks.map(rank => {
+                            // 航班号
+                            let flight = rank.fnum;
+                            if (!util.oneOf(flight, tmpFlights)) {
+                                tmpFlights.push(flight);
+                            }
 
-                        // 起飞机场
-                        let orgAirport = rank.forg;
-                        if (!util.oneOf(orgAirport, tmpOrgAirports)) {
-                            tmpOrgAirports.push(orgAirport);
-                        }
+                            // 起飞机场
+                            let orgAirport = rank.forg;
+                            if (!util.oneOf(orgAirport, tmpOrgAirports)) {
+                                tmpOrgAirports.push(orgAirport);
+                            }
 
-                        // 降落机场
-                        let dstAirport = rank.fdst;
-                        if (!util.oneOf(dstAirport, tmpDstAirports)) {
-                            tmpDstAirports.push(dstAirport);
-                        }
+                            // 降落机场
+                            let dstAirport = rank.fdst;
+                            if (!util.oneOf(dstAirport, tmpDstAirports)) {
+                                tmpDstAirports.push(dstAirport);
+                            }
+                        });
                     });
                 }
                 this.flights = tmpFlights;
@@ -315,55 +371,30 @@
                 }
                 return rs;
             },
-            setEastRankData (jsonData) {
-                let tmpRankRows = [];
+            getEastLastRank (flightArg, orgAirportArg, dstAirportArg) {
                 let tmpRankData = [];
+                for (let dateKey in this.eastLastData) {
+                    let dateValue = this.eastLastData[dateKey];
+                    dateValue.map(ranks => {
+                        ranks.map(rank => {
+                            // 航班号
+                            let flight = rank.fnum;
+                            // 起飞机场
+                            let orgAirport = rank.forg;
+                            // 降落机场
+                            let dstAirport = rank.fdst;
 
-                for (let dateKey in jsonData) {
-                    let dateValue = jsonData[dateKey];
-                    dateValue.map(rank => {
-                        // 航班号
-                        let flight = rank.fnum;
-                        // 起飞机场
-                        let orgAirport = rank.forg;
-                        // 降落机场
-                        let dstAirport = rank.fdst;
-                        // 排名列表
-                        let canPush = false;
-                        if (util.isNull(this.flight) ||
-                            this.flight === '' ||
-                            this.flight === flight) {
-                            if (util.isNull(this.orgAirport) ||
-                                this.orgAirport === '' ||
-                                this.orgAirport === orgAirport) {
-                                if (util.isNull(this.dstAirport) ||
-                                    this.dstAirport === '' ||
-                                    this.dstAirport === dstAirport) {
-                                    canPush = true;
-                                }
-                            }
-                        }
-                        if (canPush) {
-                            tmpRankData.push({
-                                date: dateKey,
-                                flight: flight,
-                                orgAirport: orgAirport,
-                                dstAirport: dstAirport,
-                                rank: rank.ranking
-                            });
-                            canPush = true;
-                            for (let rankRow of tmpRankRows) {
-                                if (rankRow.flight === flight &&
-                                    rankRow.orgAirport === orgAirport &&
-                                    rankRow.dstAirport === dstAirport) {
-                                    if (dateKey > rankRow.date) {
-                                        rankRow.rank = ('00000' + rank.ranking).slice(-3);
+                            // 排名列表
+                            let canPush = false;
+                            if (flightArg === flight) {
+                                if (orgAirportArg === orgAirport) {
+                                    if (dstAirportArg === dstAirport) {
+                                        canPush = true;
                                     }
-                                    canPush = false;
                                 }
                             }
                             if (canPush) {
-                                tmpRankRows.push({
+                                tmpRankData.push({
                                     date: dateKey,
                                     flight: flight,
                                     orgAirport: orgAirport,
@@ -371,7 +402,76 @@
                                     rank: ('00000' + rank.ranking).slice(-3)
                                 });
                             }
-                        }
+                        });
+                    });
+                }
+                return tmpRankData;
+            },
+            setEastRankData (jsonData) {
+                this.rankColumns = this.eastRankColumns;
+                let tmpRankRows = [];
+                let tmpRankData = [];
+
+                for (let dateKey in jsonData) {
+                    let dateValue = jsonData[dateKey];
+                    dateValue.map(ranks => {
+                        ranks.map(rank => {
+                            // 航班号
+                            let flight = rank.fnum;
+                            // 起飞机场
+                            let orgAirport = rank.forg;
+                            // 降落机场
+                            let dstAirport = rank.fdst;
+                            // 上个月排名以及上上个月排名
+                            let lastRank = this.getEastLastRank(flight, orgAirport, dstAirport);
+                            // 排名列表
+                            let canPush = false;
+                            if (util.isNull(this.flight) ||
+                                this.flight === '' ||
+                                this.flight === flight) {
+                                if (util.isNull(this.orgAirport) ||
+                                    this.orgAirport === '' ||
+                                    this.orgAirport === orgAirport) {
+                                    if (util.isNull(this.dstAirport) ||
+                                        this.dstAirport === '' ||
+                                        this.dstAirport === dstAirport) {
+                                        canPush = true;
+                                    }
+                                }
+                            }
+                            if (canPush) {
+                                tmpRankData.push({
+                                    date: dateKey,
+                                    flight: flight,
+                                    orgAirport: orgAirport,
+                                    dstAirport: dstAirport,
+                                    rank: rank.ranking
+                                });
+                                canPush = true;
+                                for (let rankRow of tmpRankRows) {
+                                    if (rankRow.flight === flight &&
+                                        rankRow.orgAirport === orgAirport &&
+                                        rankRow.dstAirport === dstAirport) {
+                                        if (dateKey > rankRow.date) {
+                                            rankRow.rank = ('00000' + rank.ranking).slice(-3);
+                                        }
+                                        canPush = false;
+                                    }
+                                }
+                                if (canPush) {
+                                    tmpRankRows.push({
+                                        date: dateKey,
+                                        flight: flight,
+                                        orgAirport: orgAirport,
+                                        dstAirport: dstAirport,
+                                        rank: ('00000' + rank.ranking).slice(-3),
+                                        rate: (rank.departRate * 100).toFixed(2),
+                                        lastRank: lastRank.length === 3 ? lastRank[1].rank : 0,
+                                        lastLastRank: lastRank.length === 3 ? lastRank[0].rank : 0
+                                    });
+                                }
+                            }
+                        });
                     });
                 }
                 this.rankRows = tmpRankRows;
@@ -380,75 +480,78 @@
                 this.scatterData = [];
             },
             setAviationRankData (jsonData) {
+                this.rankColumns = this.aviationRankColumns;
                 let tmpRankRows = [];
                 let tmpRankData = [];
 
                 for (let dateKey in jsonData) {
                     let dateValue = jsonData[dateKey];
-                    dateValue.map(rank => {
-                        // 航班号
-                        let flight = rank.fnum;
-                        // 起飞机场
-                        let orgAirport = rank.forg;
-                        // 降落机场
-                        let dstAirport = rank.fdst;
+                    dateValue.map(ranks => {
+                        ranks.map(rank => {
+                            // 航班号
+                            let flight = rank.fnum;
+                            // 起飞机场
+                            let orgAirport = rank.forg;
+                            // 降落机场
+                            let dstAirport = rank.fdst;
 
-                        // 排名列表
-                        let canPush = false;
-                        if (util.isNull(this.flight) ||
-                            this.flight === '' ||
-                            this.flight === flight) {
-                            if (util.isNull(this.orgAirport) ||
-                                this.orgAirport === '' ||
-                                this.orgAirport === orgAirport) {
-                                if (util.isNull(this.dstAirport) ||
-                                    this.dstAirport === '' ||
-                                    this.dstAirport === dstAirport) {
-                                    canPush = true;
-                                }
-                            }
-                        }
-                        if (canPush) {
-                            tmpRankData.push({
-                                date: dateKey,
-                                flight: flight,
-                                orgAirport: orgAirport,
-                                dstAirport: dstAirport,
-                                rank: rank.ranking,
-                                weather: rank['天气'],
-                                company: rank['公司'],
-                                flow: rank['流量'],
-                                military: rank['军事活动'],
-                                airControl: rank['空管'],
-                                airport: rank['机场'],
-                                unionCheck: rank['联检'],
-                                oil: rank['油料'],
-                                departSystem: rank['离港系统'],
-                                passenger: rank['旅客'],
-                                security: rank['公共安全'],
-                                delayTime: rank.delayTime
-                            });
-                            canPush = true;
-                            for (let rankRow of tmpRankRows) {
-                                if (rankRow.flight === flight &&
-                                    rankRow.orgAirport === orgAirport &&
-                                    rankRow.dstAirport === dstAirport) {
-                                    if (dateKey > rankRow.date) {
-                                        rankRow.rank = ('00000' + rank.ranking).slice(-3);
+                            // 排名列表
+                            let canPush = false;
+                            if (util.isNull(this.flight) ||
+                                this.flight === '' ||
+                                this.flight === flight) {
+                                if (util.isNull(this.orgAirport) ||
+                                    this.orgAirport === '' ||
+                                    this.orgAirport === orgAirport) {
+                                    if (util.isNull(this.dstAirport) ||
+                                        this.dstAirport === '' ||
+                                        this.dstAirport === dstAirport) {
+                                        canPush = true;
                                     }
-                                    canPush = false;
                                 }
                             }
                             if (canPush) {
-                                tmpRankRows.push({
+                                tmpRankData.push({
                                     date: dateKey,
                                     flight: flight,
                                     orgAirport: orgAirport,
                                     dstAirport: dstAirport,
-                                    rank: ('00000' + rank.ranking).slice(-3)
+                                    rank: rank.ranking,
+                                    weather: rank['天气'],
+                                    company: rank['公司'],
+                                    flow: rank['流量'],
+                                    military: rank['军事活动'],
+                                    airControl: rank['空管'],
+                                    airport: rank['机场'],
+                                    unionCheck: rank['联检'],
+                                    oil: rank['油料'],
+                                    departSystem: rank['离港系统'],
+                                    passenger: rank['旅客'],
+                                    security: rank['公共安全'],
+                                    delayTime: rank.delayTime
                                 });
+                                canPush = true;
+                                for (let rankRow of tmpRankRows) {
+                                    if (rankRow.flight === flight &&
+                                        rankRow.orgAirport === orgAirport &&
+                                        rankRow.dstAirport === dstAirport) {
+                                        if (dateKey > rankRow.date) {
+                                            rankRow.rank = ('00000' + rank.ranking).slice(-3);
+                                        }
+                                        canPush = false;
+                                    }
+                                }
+                                if (canPush) {
+                                    tmpRankRows.push({
+                                        date: dateKey,
+                                        flight: flight,
+                                        orgAirport: orgAirport,
+                                        dstAirport: dstAirport,
+                                        rank: ('00000' + rank.ranking).slice(-3)
+                                    });
+                                }
                             }
-                        }
+                        });
                     });
                 }
                 this.rankRows = tmpRankRows;

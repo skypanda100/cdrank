@@ -3,7 +3,14 @@ import {service} from '@/libs/request';
 export function fetchEast () {
     return service({
         method: 'get',
-        url: '/data/east.json'
+        url: '/data/east_rank_list.json'
+    });
+}
+
+export function fetchLastEast () {
+    return service({
+        method: 'get',
+        url: '/data/east_month_rank.json'
     });
 }
 

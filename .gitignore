@@ -1,3 +1,4 @@
 /client/rank/node_modules
 /client/rank/.idea
 /client/rank/dist
+/server/rank-reason/acount.py

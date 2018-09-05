@@ -6,10 +6,7 @@ import os
 import re
 import csv
 
-# from draw import draw_pic,draw_pic2
-# draw_pic(x1,y1,filename) 
-# x1,y1分别为x轴y轴的数值列表，filename为保存的文件名
-
+from acount import vf_user,vf_pwd
 from UnnormalReasonCount import flight_reason
 # flight_reason(CallSign,DepAP,ArrAP,start_day,end_day)
 
@@ -18,6 +15,7 @@ def get_date(month=None):
     now_year=now_.tm_year
     now_month=now_.tm_mon
     now_date=now_.tm_mday
+    now_hour=now_.tm_hour
     # print(now_year,now_month,now_date)
     year=now_year
     if not month:
@@ -27,13 +25,24 @@ def get_date(month=None):
         return None
     if month==now_month:
         if now_date==1:
-            # max_day=now_date
-            # 如果当日是1号，那么取当天的数据，便于少统计一个月
+            # 1号选定日期为上月，最后一天
             month=now_month-1
             max_day=calendar.monthrange(year,month)[1]
             # print('本月数据还未统计，无法获取，查找上月数据')
+            if now_hour<17:
+                # 1号1700前选定日期为上月，倒数第二天
+                max_day=max_day-1
+        elif now_date==2:
+            # 2号1700前，选定日期为上月最后一天
+            if now_hour<17:
+                month=now_month-1
+                max_day=max_day=calendar.monthrange(year,month)[1]
+            else:
+                max_day=now_date-1
         else:
             max_day=now_date-1
+            if now_hour<17:
+                max_day=max_day-1
     else:
         max_day=calendar.monthrange(year,month)[1]
     # print(year,month,max_day)
@@ -41,36 +50,25 @@ def get_date(month=None):
         
         
     
-def login():
-    # token=get_token()
+def login(n=0):
     login_url='http://fisc.variflight.com/v1/user/login'
-    login_headers={
-    'Origin':'http://fisc.variflight.com',
-    'User-Agent':'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-    'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
-    'Referer':'http://fisc.variflight.com/fisc/index.html',
-    }
     post_data={
-    'LoginForm[username]':'cdhk',
-    'LoginForm[password]':'cdhk2017'
+    'LoginForm[username]':vf_user,
+    'LoginForm[password]':vf_pwd
     }
-    login_rep= s.post(url=login_url,headers=login_headers,data=post_data)
+    login_rep= s.post(url=login_url,headers=headers,data=post_data)
     # print(login_rep.content)
     if login_rep.json()["message"]=='Success':
         print('飞常准登录成功\n')
         token=login_rep.json()["data"]
         return token
     else:
-        return None
-    
+        while n<3:
+            n=+1
+            return login(n)
     
     # 获取单个机场单个时间段的所有相关航班的排名
 def get_airport_day_rank(url,start_day,end_day,airport):
-    headers={
-    'Origin':'http://fisc.variflight.com',
-    'User-Agent':'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36',
-    'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8',
-    }
     if end_day[8:]=='01':
         minNumber=1
     else:
@@ -106,7 +104,7 @@ def rank_add_reason(url,start_day,end_day,airport):
                 x['endDay']=end_day
                 x['flight']=f"{x['fnum']} {x['forg']}-{x['fdst']}"
                 
-                if 'aviation' in url:
+                if 'aviation' in url: #仅全国航班统计原因
                     CallSign=x['fnum']
                     DepAP=x['forg']
                     ArrAP=x['fdst']
@@ -134,7 +132,16 @@ def get_day_rank_list(url,airport_list,start_day,end_day):
     # print(rank_dict)
     return rank_dict
     
-    
+def old_rank(file):
+    if os.path.isfile(file):
+    # file为之前日期生成的json文件，rank_data为新抓取的数据
+        with open(file,'r',encoding='utf-8') as fp:
+            old_rank_data=json.load(fp)
+            old_rank_date=list(old_rank_data)
+        return old_rank_data,old_rank_date
+    else:
+        return '',''
+            
 class New_rank():
     '''
     全局变量：
@@ -146,35 +153,26 @@ class New_rank():
         self.host="http://fisc.variflight.com"
         self.tag=tag
         if tag=='East':
-            self.url=self.host+"/v1/east/index?token="+token
+            self.url=self.host+"/v1/east/index?token="+rank_token
             self.file='east_rank_list.json'
             self.airport_list=east_airport
             self.start_month=str(month-2).zfill(2)# 华东从上上月1号开始统计
             
             
         if tag=='Aviation':
-            self.url=self.host+"/v1/aviation/index?token="+token
+            self.url=self.host+"/v1/aviation/index?token="+rank_token
             self.file='aviation_rank_list.json'
             self.airport_list=aviation_airport
             self.start_month=str(month).zfill(2)# 全国从当月1号开始统计
             
         self.stop_month=str(month).zfill(2)
         self.start_day=f'{year}-{self.start_month}-01'
-    
-    def old_rank(self):
-        if os.path.isfile(self.file):
-        # file为之前日期生成的json文件，rank_data为新抓取的数据
-            with open(self.file,'r',encoding='utf-8') as fp:
-                old_rank_data=json.load(fp)
-                old_rank_date=list(old_rank_data)
-            return old_rank_data,old_rank_date
-        else:
-            return '',''
+   
         
     def get_new_rank(self):
         total_rank_list={}
         # 获取旧数据
-        old_rank_data,old_rank_date=self.old_rank()
+        old_rank_data,old_rank_date=old_rank(self.file)
         if old_rank_data:
             total_rank_list.update(old_rank_data)
         # 获取新数据
@@ -188,7 +186,24 @@ class New_rank():
                 with open(self.file,'w',encoding='utf-8') as fp:
                     json.dump(total_rank_list,fp,ensure_ascii=False)
         return total_rank_list
-    
+        
+    def get_month_rank(self):
+        total_rank_list={}
+        file='east_month_rank.json'
+        old_rank_data=old_rank(file)[0]
+        if old_rank_data:
+            total_rank_list.update(old_rank_data)
+        for m in [month-2,month-1,month]:
+            start_date1=f'{year}-{str(m).zfill(2)}-01'
+            stop_day1=calendar.monthrange(year,m)[1]
+            stop_date1=f'{year}-{str(m).zfill(2)}-{stop_day1}'
+            print(start_date1,stop_date1)
+            rank_list=get_day_rank_list(self.url,self.airport_list,start_date1,stop_date1)
+            total_rank_list.update(rank_list)
+            with open(file,'w',encoding='utf-8') as fp:
+                json.dump(total_rank_list,fp,ensure_ascii=False)
+        
+'''
     
     # 取得当日航班及当月数据
 def rank_filter(total_rank_dict,month):
@@ -236,16 +251,20 @@ def rank_csv(rank_all_dict,rank_type):
                 writer =csv.writer(fp)
                 writer.writerow(('航班','排名','正常率'))
                 writer.writerows(sortedlist)
+'''
                 
-         
+s=requests.Session()
+headers={'User-Agent':'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'}
+rank_token=login()
+
+aviation_airport=[
+"ZBAA","ZSPD","ZGGG","ZUUU","ZPPP","ZGSZ","ZSSS","ZLXY","ZUCK","ZSHC",
+"ZSAM","ZSNJ","ZGHA","ZHHH","ZHCC","ZSQD","ZWWW","ZBTJ","ZJHK"]
+
+east_airport=["ZSPD","ZSSS","ZSNJ","ZSHC","ZSAM","ZSQD","ZSFZ"]
+    
 if __name__=='__main__':
-    aviation_airport=[
-    "ZBAA","ZSPD","ZGGG","ZUUU","ZPPP","ZGSZ","ZSSS","ZLXY","ZUCK","ZSHC",
-    "ZSAM","ZSNJ","ZGHA","ZHHH","ZHCC","ZSQD","ZWWW","ZBTJ","ZJHK"
-    ]
-    east_airport=["ZSPD","ZSSS","ZSNJ","ZSHC","ZSAM","ZSQD","ZSFZ"]
-    s=requests.Session()
-    token=login()
+    
     
     set_month=''
     # set_month=input('输入需要的月份，不输入则为当月,按回车确认:\n')
@@ -256,15 +275,14 @@ if __name__=='__main__':
     # with open('update','w') as f:
         # f.write(target_day)
     print(target_day,'\n')
-    if token:
+    if rank_token:
         # host="http://fisc.variflight.com"
         # url=host+"/v1/east/index?token="+token
         # get_day_rank_list(url,east_airport,start_day,end_day)
-        east_rank=New_rank('East')
-        east_rank_all=east_rank.get_new_rank()
+        east_rank_all=New_rank('East').get_new_rank()
+        east_rank_all=New_rank('East').get_month_rank()
         
-        aviation_rank=New_rank('Aviation')
-        aviation_rank_all=aviation_rank.get_new_rank()
+        aviation_rank_all=New_rank('Aviation').get_new_rank()
         
         
         # rank_csv(aviation_rank_all,'Aviation')

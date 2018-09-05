@@ -6,6 +6,7 @@ from lxml import etree
 import os
 import json
 
+from acount import fot_user,fot_pwd
 def dateRange(beginDate, endDate):
     dates = []
     dt = datetime.datetime.strptime(beginDate, "%Y-%m-%d")
@@ -51,8 +52,8 @@ def login(n=0):
     code_url='https://flightontime.cn/loginAction.do?method=createValidationCode&d=' + str(random.random())
     verify_code=code_ocr(code_url)
     post_data={
-    'name': 'uea001',
-    'password': 'Uea123456',
+    'name': fot_user,
+    'password': fot_pwd,
     'txtValidationCode': verify_code,
     'x':str(random.randint(20,232)),
     'y':str(random.randint(8,23))
@@ -65,7 +66,7 @@ def login(n=0):
     else:
         while n<3:
             n=+1
-            return login()
+            return login(n)
         
 def get_flight_info(page,start_day,end_day):
     if page>1:
@@ -161,7 +162,7 @@ class NewData():
         dates=dateRange(self.date_seg1,self.date_seg2)
         for date in dates:
             if date not in old_dates:
-                print(f'正在{date}下载数据')
+                print(f'正在下载{date}数据')
                 data_list=multi_page(date,date)
                 total_list.extend(data_list)
                 with open(self.file,'w',encoding='utf-8') as fp:
@@ -226,7 +227,7 @@ def flight_reason(CallSign,DepAP,ArrAP,beginDate,endDate):
                 new_list.append(item)
     if new_list:
         reason=reason_count(new_list)
-        print(f'{CallSign} {DepAP}-{ArrAP} {beginDate}-{endDate}{reason}')
+        print(f'{CallSign} {DepAP}-{ArrAP} {beginDate}-{endDate}\n    {reason}')
         return reason
         
         
@@ -240,7 +241,7 @@ if __name__=="__main__":
     # multi_page()
     # get_date()
     # month_data=NewData('2018-08-01','2018-08-31').get_new_data()
-    CallSign,DepAP,ArrAP,beginDate,endDate='EU6662','ZSPD','ZUUU','2018-08-01','2018-08-02'
+    CallSign,DepAP,ArrAP,beginDate,endDate='EU6661','ZUUU','ZSPD','2018-08-01','2018-09-03'
     flight_reason(CallSign,DepAP,ArrAP,beginDate,endDate)
     
     
