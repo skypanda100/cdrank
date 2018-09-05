@@ -1,128 +1,132 @@
 <template>
     <div id='main' class='main'>
+        <!--<Row>-->
+            <!--<i-col span="8">-->
+                <!--<img width="210px" height="70px"  align="left" src="./images/logo1.jpg">-->
+            <!--</i-col>-->
+            <!--<i-col span="8">-->
+                <!--<h1 style="line-height:70px;text-align: center">-->
+                    <!--成都航空运行控制中心航班预警排名系统-->
+                <!--</h1>-->
+            <!--</i-col>-->
+            <!--<i-col span="8">-->
+                <!--<img width="210px" height="70px" align="right" src="./images/logo2.jpg">-->
+            <!--</i-col>-->
+        <!--</Row>-->
         <Row>
-            <i-col span="8">
-                <img width="210px" height="70px"  align="left" src="./images/logo1.jpg">
-            </i-col>
-            <i-col span="8">
-                <h1 style="line-height:70px;text-align: center">
-                    成都航空运行控制中心航班预警排名系统
-                </h1>
-            </i-col>
-            <i-col span="8">
-                <img width="210px" height="70px" align="right" src="./images/logo2.jpg">
-            </i-col>
-        </Row>
-        <Split v-model='hSplit' class="split">
-            <div slot='left' class='list'>
-                <Row>
-                    <i-col span='3'>
-                        <Select
-                                v-model='org'
-                                placeholder='机构'
-                                filterable>
-                            <Option v-for='(item, index) in orgs' :value='item' :key='index'>{{ item }}</Option>
-                        </Select>
-                    </i-col>
-                    <i-col span='1'>
-                        &nbsp;
-                    </i-col>
-                    <i-col span='4'>
-                        <Select
-                                v-model='flight'
-                                clearable
-                                placeholder='航班号'
-                                filterable>
-                            <Option v-for='(item, index) in flights' :value='item' :key='index'>{{ item }}</Option>
-                        </Select>
-                    </i-col>
-                    <i-col span='1'>
-                        &nbsp;
-                    </i-col>
-                    <i-col span='4'>
-                        <Select
-                                v-model='orgAirport'
-                                clearable
-                                placeholder='起飞机场'
-                                filterable>
-                            <Option v-for='(item, index) in orgAirports' :value='item' :key='index'>{{ item }}</Option>
-                        </Select>
-                    </i-col>
-                    <i-col span='1'>
-                        &nbsp;
-                    </i-col>
-                    <i-col span='4'>
-                        <Select
-                                v-model='dstAirport'
-                                clearable
-                                placeholder='降落机场'
-                                filterable>
-                            <Option v-for='(item, index) in dstAirports' :value='item' :key='index'>{{ item }}</Option>
-                        </Select>
-                    </i-col>
-                    <i-col span='1'>
-                        &nbsp;
-                    </i-col>
-                    <i-col span='4'>
-                        <Button
-                                type='primary'
-                                long
-                                @click='handleSearch'>
-                            查询
-                        </Button>
-                    </i-col>
-                </Row>
-                <br>
-                <Table
-                        :columns='rankColumns'
-                        :data='rankRows'
-                        size='small'
-                        height="750"
-                        :loading="loading"
-                        @on-row-click="handleClick"
-                        highlight-row
-                        ref='table'>
-                </Table>
-            </div>
-            <div v-if="org === '总局'" slot='right' id='chartAviation' class='chart' key="div1">
-                <Card style="height: 400px" :padding="0">
-                    <div style="width:calc(100%);height: 400px">
-                        <scatter :scatterData="scatterData" key="1">
-                        </scatter>
-                    </div>
-                </Card>
-                <br>
-                <Card style="height: 400px" :padding="0">
-                    <div style="width:calc(100%);height: 400px">
-                        <pie :pieData="pieData">
-                        </pie>
-                    </div>
-                </Card>
-                <br>
-                <Card style="height: 600px" :padding="0">
+            <i-col span="7">
+                <div class='list'>
                     <Row>
-                        <i-col span="16">
-                            <spread :spreadData="spreadData">
-                            </spread>
+                        <i-col span='3'>
+                            <Select
+                                    v-model='org'
+                                    placeholder='机构'
+                                    filterable>
+                                <Option v-for='(item, index) in orgs' :value='item' :key='index'>{{ item }}</Option>
+                            </Select>
                         </i-col>
-                        <i-col span="8">
-                            <div style="width:calc(100%);height: 400px">
-                                <radar :radarData="radarData">
-                                </radar>
-                            </div>
+                        <i-col span='1'>
+                            &nbsp;
+                        </i-col>
+                        <i-col span='4'>
+                            <Select
+                                    v-model='flight'
+                                    clearable
+                                    placeholder='航班号'
+                                    filterable>
+                                <Option v-for='(item, index) in flights' :value='item' :key='index'>{{ item }}</Option>
+                            </Select>
+                        </i-col>
+                        <i-col span='1'>
+                            &nbsp;
+                        </i-col>
+                        <i-col span='4'>
+                            <Select
+                                    v-model='orgAirport'
+                                    clearable
+                                    placeholder='起飞机场'
+                                    filterable>
+                                <Option v-for='(item, index) in orgAirports' :value='item' :key='index'>{{ item }}</Option>
+                            </Select>
+                        </i-col>
+                        <i-col span='1'>
+                            &nbsp;
+                        </i-col>
+                        <i-col span='4'>
+                            <Select
+                                    v-model='dstAirport'
+                                    clearable
+                                    placeholder='降落机场'
+                                    filterable>
+                                <Option v-for='(item, index) in dstAirports' :value='item' :key='index'>{{ item }}</Option>
+                            </Select>
+                        </i-col>
+                        <i-col span='1'>
+                            &nbsp;
+                        </i-col>
+                        <i-col span='4'>
+                            <Button
+                                    type='primary'
+                                    long
+                                    @click='handleSearch'>
+                                查询
+                            </Button>
                         </i-col>
                     </Row>
-                </Card>
-            </div>
-            <div v-if="org === '华东'" slot='right' id='chartEast' class='chart' key="div2">
-                <Card style="height: 800px" :padding="0">
-                    <div style="width: calc(100%);height: 800px">
-                        <scatter :scatterData="scatterData" key="2">
-                        </scatter>
-                    </div>
-                </Card>
-            </div>
-        </Split>
+                    <br>
+                    <Table
+                            :columns='rankColumns'
+                            :data='rankRows'
+                            size='small'
+                            height="750"
+                            :loading="loading"
+                            @on-row-click="handleClick"
+                            highlight-row
+                            ref='table'>
+                    </Table>
+                </div>
+            </i-col>
+            <i-col span="17">
+                <div v-if="org === '总局'" id='chartAviation' class='chart' key="div1">
+                    <Card style="height: 400px" :padding="0">
+                        <div style="width:calc(100%);height: 400px">
+                            <scatter :scatterData="scatterData" key="1">
+                            </scatter>
+                        </div>
+                    </Card>
+                    <br>
+                    <Card style="height: 400px" :padding="0">
+                        <div style="width:calc(100%);height: 400px">
+                            <pie :pieData="pieData">
+                            </pie>
+                        </div>
+                    </Card>
+                    <br>
+                    <Card style="height: 600px" :padding="0">
+                        <Row>
+                            <i-col span="16">
+                                <spread :spreadData="spreadData">
+                                </spread>
+                            </i-col>
+                            <i-col span="8">
+                                <div style="width:calc(100%);height: 400px">
+                                    <radar :radarData="radarData">
+                                    </radar>
+                                </div>
+                            </i-col>
+                        </Row>
+                    </Card>
+                </div>
+                <div v-if="org === '华东'" id='chartEast' class='chart' key="div2">
+                    <Card style="height: 800px" :padding="0">
+                        <div style="width: calc(100%);height: 800px">
+                            <scatter :scatterData="scatterData" key="2">
+                            </scatter>
+                        </div>
+                    </Card>
+                </div>
+            </i-col>
+        </Row>
     </div>
 </template>
 
@@ -546,19 +550,16 @@
     .main {
         /*border: 1px solid #dcdee2;*/
         /*width: 800px;*/
-        height: 850px;
-    }
-
-    .split {
-        border: 1px solid #dcdee2;
+        height: 100%;
     }
 
     .list {
-        padding: 5px;
+        padding: 10px;
+        height: 850px;
     }
 
     .chart {
-        height: 100%;
+        height: 850px;
         padding: 10px;
         overflow-y: auto;
     }
