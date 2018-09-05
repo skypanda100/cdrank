@@ -154,14 +154,14 @@ class New_rank():
         self.tag=tag
         if tag=='East':
             self.url=self.host+"/v1/east/index?token="+rank_token
-            self.file='east_rank_list.json'
+            self.file='/usr/share/nginx/html/data/east_rank_list.json'
             self.airport_list=east_airport
             self.start_month=str(month-2).zfill(2)# 华东从上上月1号开始统计
             
             
         if tag=='Aviation':
             self.url=self.host+"/v1/aviation/index?token="+rank_token
-            self.file='aviation_rank_list.json'
+            self.file='/usr/share/nginx/html/data/aviation_rank_list.json'
             self.airport_list=aviation_airport
             self.start_month=str(month).zfill(2)# 全国从当月1号开始统计
             
@@ -189,7 +189,7 @@ class New_rank():
         
     def get_month_rank(self):
         total_rank_list={}
-        file='east_month_rank.json'
+        file='/usr/share/nginx/html/data/east_month_rank.json'
         old_rank_data=old_rank(file)[0]
         if old_rank_data:
             total_rank_list.update(old_rank_data)

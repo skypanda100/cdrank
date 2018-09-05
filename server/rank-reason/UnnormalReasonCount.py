@@ -138,7 +138,7 @@ def multi_page(start_day,end_day):
         
 class NewData():
     def __init__(self,date_seg1,date_seg2):
-        self.file='UnnormalReason.json'
+        self.file='/usr/share/nginx/html/data/UnnormalReason.json'
         self.date_seg1=date_seg1
         self.date_seg2=date_seg2
         
