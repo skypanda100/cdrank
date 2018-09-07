@@ -569,7 +569,9 @@
             setScatterData (data) {
                 let tmp = [];
                 this.rankData.map(rank => {
-                    if (rank.flight === data.flight) {
+                    if (rank.flight === data.flight &&
+                        rank.orgAirport === data.orgAirport &&
+                        rank.dstAirport === data.dstAirport) {
                         let ranking = rank.rank;
                         let day = parseInt(rank.date.substr(8), 10);
                         tmp.push([day, ranking]);
@@ -586,7 +588,9 @@
                 let tmpAirControl = ['空管'];
                 let tmpOther = ['其他'];
                 this.rankData.map(rank => {
-                    if (rank.flight === data.flight) {
+                    if (rank.flight === data.flight &&
+                        rank.orgAirport === data.orgAirport &&
+                        rank.dstAirport === data.dstAirport) {
                         let day = rank.date.substr(8);
                         tmpDay.push(day);
                         tmpWeather.push(rank.weather);
@@ -608,7 +612,9 @@
             setSpreadData (data) {
                 let tmp = [];
                 this.rankData.map(rank => {
-                    if (rank.flight === data.flight) {
+                    if (rank.flight === data.flight &&
+                        rank.orgAirport === data.orgAirport &&
+                        rank.dstAirport === data.dstAirport) {
                         let reason = this.getReason(rank);
                         rank.reason = reason;
                         tmp.push(rank);
@@ -619,7 +625,9 @@
             setRadarData (data) {
                 let tmpData = [];
                 this.rankData.map(rank => {
-                    if (rank.flight === data.flight) {
+                    if (rank.flight === data.flight &&
+                        rank.orgAirport === data.orgAirport &&
+                        rank.dstAirport === data.dstAirport) {
                         tmpData.push(rank);
                     }
                 });
